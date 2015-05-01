@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 MyCode
 ======
 
@@ -37,3 +38,7 @@ for(int j =1; j<N ; j ++)
 The way we do it is to cut the cache block into smaller blocks and perform the operation one by one, which helps reduces cache misses.
 
 
+=======
+# MyCode
+My gitHub code
+>>>>>>> ee9a3adbf921758047a0c42bf46fa9e64a4290e9
