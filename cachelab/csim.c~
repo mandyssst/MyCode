@@ -1,0 +1,240 @@
+#include "cachelab.h"
+#include <time.h>
+#include <getopt.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <stdio.h>
+#include <ctype.h>
+#define MAXLINE 200
+
+void get_opt(int argc, char **argv);
+void init();
+void Dfree();
+void load(void *addr, int size);
+void Modify(void *addr, int size);
+void Store(void *addr, int size);
+int  getset(void *addr);
+long gettag(void *addr);
+
+struct Set
+{
+    int *v;
+    clock_t *last_access_time;
+    long *tag;
+};
+
+int hits, misses, evicts;
+struct Set *setptr;          
+int s = 0, E = 0, b = 0;
+char *file = NULL;
+long clocktime = 0;             
+
+int main(int argc, char **argv)
+{
+    get_opt(argc, argv);
+    init();
+
+    FILE *fp = fopen(file, "r");
+    if (fp == NULL)
+    {
+        fprintf(stderr, "open file error\n");
+        exit(0);
+    }
+
+    char op[MAXLINE];
+    void *addr;
+    int size;
+    char buf[MAXLINE];
+    while (fgets(buf, MAXLINE, fp) != NULL)
+    {
+        sscanf(buf, "%s %p,%d", op, &addr, &size);
+        if (*op == 'L')
+        {
+            load(addr, size);
+        }
+        else if (*op == 'M')
+        {
+            Modify(addr, size);
+        }
+        else if (*op == 'S')
+        {
+            Store(addr, size);
+        }
+    }
+
+    Dfree();
+    printSummary(hits, misses, evicts);
+    return 0;
+}
+
+
+int getset(void *addr)
+{
+    return (int)( ((long)addr >> b) & ((1 << s) - 1) );
+}
+
+long gettag(void *addr)
+{
+    return (long)((long)addr >> (s + b));
+}
+
+void get_opt(int argc, char **argv)
+{
+    int c;
+
+    while ((c = getopt(argc, argv, "s:E:b:t:")) != -1)
+    {
+        switch (c)
+        {
+            case 's':
+                s = atoi(optarg);
+                break;
+            case 'E':
+                E = atoi(optarg);
+                break;
+            case 'b':
+                b = atoi(optarg);
+                break;
+            case 't':
+                file = optarg;
+                break;
+            default:
+                printf("illegal opt\n");
+                exit(0);
+        }
+    }
+}
+
+
+void init()
+{
+    int S = (1 << s);
+    if ( S <= 0)
+    {
+        fprintf(stderr, "S is nonpositive\n");
+        exit(0);
+    }
+    setptr = (struct Set*)malloc(sizeof(struct Set) * S);
+
+    for (int ind = 0; ind < S; ++ind)
+    {
+        setptr[ind].v = (int *)malloc(sizeof(int) * E);
+        setptr[ind].last_access_time = (clock_t *)malloc(sizeof(clock_t) * E);
+        setptr[ind].tag = (long *)malloc(sizeof(long) * E);
+
+        for(int Eind = 0 ; Eind < E; Eind++)
+        {
+            setptr[ind].v[Eind] = 0;
+            setptr[ind].last_access_time[Eind] = 0;
+            setptr[ind].tag[Eind] = 0;
+        }
+    }
+}
+
+void Dfree()
+{
+    int S = (1 << s);
+
+    setptr = (struct Set*)malloc(sizeof(struct Set) * S);
+    for (int ind = 0; ind < S; ++ind)
+    {
+        free(setptr[ind].v);
+        free(setptr[ind].last_access_time);
+        free(setptr[ind].tag);
+    }
+
+    free(setptr);
+}
+
+void load(void *addr, int size)
+{
+    int setnum = getset(addr);
+    printf("setnum = %d, ", setnum);
+    struct Set *this_set = &setptr[setnum];
+
+    int index;
+    int full = 1;
+    int empty_item = 0;         
+    int last_item = 0;          
+    int last_time = this_set->last_access_time[0];
+
+    for (index = 0; index < E; index++)
+    {
+        if (this_set->v[index] == 1 && gettag(addr) == this_set->tag[index])
+        {
+            this_set->last_access_time[index] = ++clocktime;
+            break;
+        }
+        else if (this_set->v[index] == 0)
+        {
+            full = 0;
+            empty_item = index;
+        }
+        else
+        {
+            if (this_set->last_access_time[index] < last_time)
+            {
+                last_item = index;
+                last_time = this_set->last_access_time[index];
+            }
+        }
+    }
+
+    if (index == E) 
+    {
+        misses++;
+        if (full)   
+        {
+            this_set->tag[last_item] = gettag(addr);
+            this_set->last_access_time[last_item] = ++clocktime;
+            evicts++;
+        }
+        else
+        {
+            this_set->v[empty_item] = 1;
+            this_set->tag[empty_item] = gettag(addr);
+            this_set->last_access_time[empty_item] = ++clocktime;
+        }
+    }
+    else    
+    {
+        hits++;
+    }
+
+}
+
+void Store(void *addr, int size)
+{
+    int setnum = getset(addr);
+    printf("setnum = %d, ", setnum);
+    struct Set *this_set = &setptr[setnum];
+
+    int index;
+    for (index = 0; index < E; ++index)
+    {
+        if (this_set->v[index] == 1 && gettag(addr) == this_set->tag[index])    
+        {
+            this_set->last_access_time[index] = ++clocktime;
+            break;
+        }
+    }
+
+    if (index == E) 
+    {
+        load(addr, size);   
+    }
+    else            
+    {
+        hits++;
+    }
+}
+
+void Modify(void *addr, int size)
+{
+    int setnum = getset(addr);
+    printf("setnum = %d, ", setnum);
+
+    load(addr, size);
+    Store(addr, size);
+}
+
