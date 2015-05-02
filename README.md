@@ -36,9 +36,3 @@ for(int j =1; j<N ; j ++)
 
 The way we do it is to cut the cache block into smaller blocks and perform the operation one by one, which helps reduces cache misses.
 
----------------------------
-
-
-=======
-# MyCode
-
