@@ -1,0 +1,36 @@
+
+Purpose: Develop a simple custom make utility similar to GNU make.
+
+Implementation: A general tree is built to hold the needed information parsed from the file. The parent and child relationship in the tree denotes the dependency information of the targets.
+
+Data Structure: The tree node will hold the information such as target name and commands. The dependencies of the current node will be held in a linked list with its head named "children". As is shown below.
+
+/*** Build a tree ***/
+typedef struct treeNode {
+    char* target; 			//target name
+    char** commands; 			//array of char characters to hold the commands
+    int numOfCommands;			//keep track of the number of commands of the target
+    struct listNode* children;		//dependencies of the target
+} tNode;
+
+/*** Build a linkedlist ***/
+typedef struct listNode {
+    struct treeNode* data;		//this data will hold the tree node
+    struct listNode* next;		//next will point to the next list node
+} lNode;
+
+General algorithm: After building the tree, we will do a post-order traversal on the tree. In this way, each target will be accessed in the correct order. In addition, when there are multiple commands in one target, we will use fork to create a new process and execvp to execute the commands. We will use wait command to wait for the current process to end, and then we will proceed to execute the next command. In this way, all the commands will be executed in order.
+
+Compile: make
+
+Execution: ./custmake
+           ./custmake <target name>
+	   ./custmake -n
+	   ./custmake -f <filename>
+           ./custmake -f custMakeFile_extra.txt parallel
+           (can handle bonus question correctly)
+
+Handle Error: 
+	1. If we cannot open file, print error message.
+	2. If we cannot fork(), exec(), print error message.
+	3. If the dependency of a target cannot be found in the file, print warnning message.

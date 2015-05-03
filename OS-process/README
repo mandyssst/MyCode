@@ -1,0 +1,12 @@
+
+Purpose: Develop a multi-thread program to read, decrypt, and write specified files.
+
+Implementation: The reading of the clients.txt file is done by a single thread, and n number of threads are created to read, decrpt and write specified files. The thread that reads the clientx.txt file and the other threads are synchronized to make sure that they will not access the queue (used to stroe the files in clients.txt) at the same time, and to make sure that the queue size will not exceed the limit we passed in. In addition, the writing to the log file is also protected by mutex.
+
+Compile: make
+
+Execution: ./retrieve test_data1/clients.txt test_data1/output 100 100
+           (can handle bonus question correctly)
+
+Handle Error: 
+	1. If we cannot open file, print error message.

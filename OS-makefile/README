@@ -1,0 +1,17 @@
+
+
+Purpose: Develop a simple custom make utility similar to GNU make.
+
+Implementation: Iterate through all subdirectories and files. If it is hard link, search the file for search string. If it is symbolic link, skip it.
+
+General algorithm: 1. Recursively call function "search_dir" to search for directories and subdirectories. While we iterate through the directories and files, write their full pathes to log.txt.
+		   2. If it is a text file, create a pipe in the parent process. Fork to create a child process. Write the text file to the pipe in the parent process. Redirect the text file from the pipe directly to program "grep". Redirect the output of "grep" directly to out.txt.
+
+Compile: make
+
+Execution: ./getstring <fullpath> <searchstring>
+           (can handle bonus question correctly)
+
+Handle Error: 
+	1. If we cannot open, write, read file, print error message.
+	2. If we cannot fork(), exec(), wait(), print error message.
