@@ -1,17 +1,17 @@
 MyCode
 ======
 
-Welcome to my repositoey.
+Welcome to my repository.
 
 
 
 ForestSimulator
 
-simulates the number of trees in a forests. There're five forests, five climate, and four plants could be chosen. Real data applied.  User can create their own forest or use default one, user can also chose the time, which they would like the simulation last. Born time of trees are assigned randomly, so there is uncertainty. 
+simulates the number of trees in a forests. There're five forests, five climate, and four plants could be chosen. Real data applied.  User can create their own forest or choose scenario from our library, user can also chose the simulation time. Lifetime of the plants is affected by the enviroment, including fitness of the climate. 
 
 Hashtable is used to store the results, where the keys are the name of plants, and values are the amount of them. It's printed at the end of main class.
 
-The original purpose of this project is for doing an assignment of Geology class. When we put different plants in the same enviroment, some extinct very quickly, since the enviroment doesn't fit. For this reason, if they're put in desert, you will see the output goes to 0 very quickly. So I suggest start trying with defalut value. 
+The original purpose of this project is for doing an assignment of Geology class. When we put different plants in the same enviroment, some extinct very quickly, since the enviroment doesn't fit. For this reason, if they're put in desert, you will see the output goes to 0 very quickly. So I suggest start trying with defalut value, and then varies the factors around the defalut values. 
 
 ----------------------------------------------------
 
